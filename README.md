@@ -1,144 +1,103 @@
 # Google Form Response Automation System
 
-An educational automation testing platform designed for university demonstrations, software testing labs, and academic evaluation. Built using **Next.js (App Router)**, **TypeScript**, **Tailwind CSS**, and **Playwright**.
+An educational testing dashboard for running authorized, synthetic submissions against Google Forms or the included local mock form. The project uses **Next.js 14 App Router**, **TypeScript**, **Tailwind CSS**, **Lucide React**, and **Playwright**.
 
 > [!IMPORTANT]
-> **Educational & Authorized Testing Only**:
-> This system is designed exclusively for software engineering education and automated testing of Google Forms that the developer or tester personally owns or has explicit permission to test.
-> - Uses **synthetic test data** only (strictly labeled as `[TEST DATA]`).
-> - **Zero database**: Maintains in-memory operational state with zero data retention.
-> - **No bypass mechanisms**: Does NOT bypass CAPTCHA, authentication, rate limits, IP blocks, or bot detection.
+> Use this project only with forms that you own or have explicit permission to test. It generates synthetic values labeled `[TEST DATA]` and does not bypass CAPTCHA, authentication, rate limits, IP blocks, or bot detection.
 
----
+## What It Does
 
-## Features
+- Provides a dashboard at `/` with batch controls, progress statistics, and a live activity log.
+- Launches a Playwright Chromium session for each batch.
+- Detects common Google Forms text fields, radio groups, checkbox groups, dropdowns, grids, multi-page navigation, and submit buttons.
+- Generates randomized synthetic student and survey values in `app/lib/responseGenerator.ts`.
+- Tracks state in the Next.js Node process only. There is no database or persistent response storage.
+- Includes a local test form at `/mock-form`, so the complete workflow can be demonstrated without an external Google Form.
 
-- **Modern University Dashboard**: Clean, minimal white-and-blue layout with responsive KPI metrics.
-- **In-Memory State Management**: Next.js server-side state tracking active session stats (`running`, `total`, `completed`, `successful`, `failed`, `remaining`) with no database required.
-- **Playwright Headless Automation**: Automated browser interactions filling text fields, radios, and submitting forms.
-- **Real-Time Activity Log**: Live timestamped console displaying submission status (`✓`, `→`, `!`, `✗`).
-- **Interactive Progress Bar**: Live percentage indicator and ASCII progress preview (`███████░░░ 70%`).
-- **Synthetic Response Generator**: Predefined and randomized student survey data, strictly labeled with `[TEST DATA]`.
-- **Built-in Local Mock Form (`/mock-form`)**: Instantly demonstrate the full automation loop locally on `localhost:3000/mock-form` without needing internet or an active Google Form!
+## Requirements
 
----
+- Node.js 18 or newer
+- npm 9 or newer
+- Chromium installed through Playwright
 
-## Project Structure
-
-```
-google-form-automation/
-├── app/
-│   ├── page.tsx                      # Main dashboard page
-│   ├── layout.tsx                    # Root layout with university header & styling
-│   ├── globals.css                   # Tailwind styles and custom scrollbars
-│   ├── api/
-│   │   └── automation/
-│   │       └── route.ts              # In-memory Next.js API route (GET & POST)
-│   ├── components/
-│   │   ├── Dashboard.tsx             # Main interactive dashboard container
-│   │   ├── Statistics.tsx            # KPI cards and animated progress bar
-│   │   └── ActivityLog.tsx           # Real-time console activity log
-│   ├── lib/
-│   │   ├── automation.ts             # In-memory state and runner coordinator
-│   │   └── responseGenerator.ts      # Synthetic data generator labeled [TEST DATA]
-│   └── mock-form/
-│       └── page.tsx                  # Built-in local mock form mimicking Google Forms
-├── playwright/
-│   └── formAutomation.ts             # Playwright browser script for form submission
-├── .env.local                        # Local configuration
-├── .env.example                      # Configuration template
-├── package.json
-├── tsconfig.json
-├── tailwind.config.js
-└── README.md
-```
-
----
-
-## Installation & Setup
-
-### 1. Prerequisites
-- **Node.js** 18.x, 20.x, or higher
-- **npm** 9.x or higher
-
-### 2. Setup Commands
-Run the following exact terminal commands:
+## Installation
 
 ```bash
-# Clone or navigate into the project directory
-cd google-form-automation
-
-# Install dependencies (Next.js, Playwright, Tailwind, Lucide)
 npm install
-
-# Install Playwright browser binaries (Chromium)
 npx playwright install chromium
-
-# Start local development server
 npm run dev
 ```
 
-Open your browser at **[http://localhost:3000](http://localhost:3000)**.
+Open [http://localhost:3000](http://localhost:3000). The production commands are:
 
----
-
-## Configuration (`.env.local`)
-
-Create or update `.env.local` in the root directory:
-
-```env
-# URL of your test Google Form (must be the public viewform link)
-GOOGLE_FORM_URL=https://docs.google.com/forms/d/e/1FAIpQLScExampleFormIdHere/viewform
-
-# Optional: Set to 'false' if you want to watch the browser fill out fields live on your desktop!
-HEADLESS=true
-
-# Optional: Delay in milliseconds between consecutive responses (default: 1500)
-RESPONSE_DELAY_MS=1500
+```bash
+npm run build
+npm start
 ```
 
----
+## Configuration
 
-## How to Configure Your Test Google Form
+Create a `.env.local` file only when you need non-default settings:
 
-To test your own Google Form:
+```env
+# Optional initial URL shown in the dashboard
+GOOGLE_FORM_URL=https://docs.google.com/forms/d/e/your-form-id/viewform
 
-1. **Create a Test Google Form**:
-   - Go to [Google Forms](https://forms.google.com/) and click **Blank form**.
-   - Title: `Student Feedback Survey (Testing)`.
-2. **Add Sample Fields**:
-   - Question 1: `Student Name` (Short answer).
-   - Question 2: `Course Name` (Short answer).
-   - Question 3: `Email Address` (Short answer, optional).
-   - Question 4: `Satisfaction Level` (Multiple choice: "Very Satisfied", "Satisfied", "Neutral").
-   - Question 5: `Comments / Feedback` (Paragraph, optional).
-3. **Form Settings**:
-   - Click **Settings** at the top.
-   - Under **Responses**, ensure **"Limit to 1 response" is OFF** (so multiple test responses can be submitted).
-   - Ensure **"Collect email addresses" is OFF** or set to not require Google login.
-4. **Copy the Public URL**:
-   - Click the **Send** button (top right).
-   - Select the link icon `🔗` and copy the URL (it should end in `/viewform`).
-5. **Run the Automation**:
-   - Paste the copied URL into the Dashboard input.
-   - Set the number of test responses (e.g. `5` or `10`).
-   - Click **Start Automation**.
+# Optional. The default is true. Set to false to show Chromium while testing.
+HEADLESS=true
 
----
+# Optional Playwright executable override
+PLAYWRIGHT_CHROMIUM_PATH=/path/to/Google Chrome for Testing
+```
 
-## Instant Local Demonstration (Built-in Mock Form)
+The dashboard also accepts a per-run delay in milliseconds. The API defaults to `1500` ms when no delay is supplied. `HEADLESS` is considered enabled unless its value is exactly `false`.
 
-If you do not have an active Google Form or wish to demonstrate the system offline:
+## Local Demonstration
 
-1. Click the **"Use Local Mock Form"** button in the dashboard (or enter `http://localhost:3000/mock-form`).
-2. Set response count to `3`.
-3. Click **Start Automation**.
-4. The system will launch Playwright, fill the synthetic student responses into the mock form, submit, verify confirmation, and update the statistics and activity log in real time!
+1. Start the development server.
+2. Open `/` and choose **Use Local Mock Form**, or open `/mock-form` directly.
+3. Leave the response count between `1` and `100` and start the batch.
+4. Watch the progress and activity log update as Playwright fills and submits the mock form.
 
----
+The mock form contains required name, course, and satisfaction fields, plus optional email and feedback fields. It exposes standard textbox, radio, and submit semantics used by the fallback automation path.
 
-## Educational Architecture & Compliance
+## Authorized Google Form Testing
 
-- **No Persistent Database**: In compliance with testing best practices, responses are not stored in any external database (MongoDB, Firebase, or SQL).
-- **Graceful Control**: Students can click **Stop Automation** at any time to cleanly halt the batch loop.
-- **Strict Compliance**: The system does not attempt to bypass CAPTCHA, firewalls, or bot mitigation algorithms. If an unauthorized form presents a CAPTCHA or requires login, testing will fail cleanly as intended by design.
+Use the public `/viewform` URL for a form that you control. The form must be accessible without an interactive login. In Google Forms, turn off settings that require a Google account, such as **Limit to 1 response** or mandatory email collection, when appropriate for your authorized test.
+
+The automation uses question labels to choose suitable synthetic values, but Google Forms markup can change. A form that uses CAPTCHA, authentication, unusual custom controls, or blocked submissions will be reported as failed rather than bypassed.
+
+## API
+
+The dashboard communicates with `/api/automation`:
+
+- `GET` returns the current in-memory status, counters, form URL, and latest activity logs.
+- `POST { "action": "start", "formUrl": "...", "count": 3, "delayMs": 1500 }` starts a batch.
+- `POST { "action": "stop" }` requests cancellation of the active batch.
+- `POST { "action": "reset" }` restores the initial state when no batch is running.
+
+Response counts must be between `1` and `100`. Only one batch can run at a time. State is lost when the server process restarts, and activity logs are limited to the latest 150 entries.
+
+## Project Structure
+
+```text
+app/
+├── page.tsx                         # Dashboard route
+├── layout.tsx                       # Shared page layout and metadata
+├── globals.css                      # Global styles
+├── api/automation/route.ts          # GET/POST automation API
+├── components/                      # Dashboard, statistics, and activity log UI
+├── lib/automation.ts                # In-memory state and batch coordinator
+├── lib/responseGenerator.ts         # Synthetic [TEST DATA] generator
+└── mock-form/page.tsx               # Local Playwright test form
+playwright/formAutomation.ts        # Browser automation and form detection
+components/                          # Additional UI component files
+package.json                         # Scripts and dependencies
+```
+
+## Safety and Data Handling
+
+- Use synthetic data only; do not submit personal or sensitive information.
+- No database, file-based response store, or external response archive is used.
+- Stop and reset controls are available from the dashboard.
+- Authentication, CAPTCHA, rate limits, and other security controls are intentionally not circumvented.
